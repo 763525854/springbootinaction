@@ -3,6 +3,7 @@
  */
 package readinglist;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -20,5 +21,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
 public class ReadingListApplicationTests {
 	@Test
 	public void contextLoads() {
+		Assert.assertEquals("相等", 19, 19);
 	}
 }
