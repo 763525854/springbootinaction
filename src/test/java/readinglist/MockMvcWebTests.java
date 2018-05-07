@@ -38,6 +38,12 @@ public class MockMvcWebTests {
 		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 	}
 
+	/**
+	 * 改方法含义为。首先向/readingList发起一个GET请求，接下来希望该请求处理返回成功。status().isOk()会判断HTTP
+	 * 200响应吗，并且视图的逻辑名称为readingList。而且测试的模型中还要包含一个名为books的属性，该属性的是一个空集合
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void homePage() throws Exception {
 		mockMvc.perform(get("/readingList")).andExpect(status().isOk()).andExpect(view().name("readingList"))
