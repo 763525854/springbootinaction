@@ -5,7 +5,7 @@
 	<artifactId>springbootinaction</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>ReadingList</name>
-	<description>Reading List Demo</description>
+	<description>SpringBoot实战</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
