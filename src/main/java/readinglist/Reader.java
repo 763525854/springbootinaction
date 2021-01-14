@@ -31,6 +31,9 @@ public class Reader implements UserDetails {
 	private String fullname;
 	private String password;
 
+	/**
+	 * 授予READER权限
+	 */
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return Arrays.asList(new SimpleGrantedAuthority("READER"));
