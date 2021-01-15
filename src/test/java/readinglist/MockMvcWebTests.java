@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
@@ -84,5 +86,23 @@ public class MockMvcWebTests {
 		mockMvc.perform(get("/" + reader)).andExpect(status().isOk()).andExpect(view().name("readingList"))
 				.andExpect(model().attributeExists("books")).andExpect(model().attribute("books", hasSize(1)))
 				.andExpect(model().attribute("books", contains(samePropertyValuesAs(expectedBook))));
+	}
+
+	@Test
+	@WithMockUser(username="craig",
+			password="password",
+			roles="READER")
+	/**
+	 * 有问题
+	 * @throws Exception
+	 */
+	public void homePage_authenticatedUser() throws Exception {
+		Reader expectedReader = new Reader();
+		expectedReader.setUsername("craig");
+		expectedReader.setPassword("password");
+		expectedReader.setFullname("Craig Walls");
+		mockMvc.perform(get("/")).andExpect(status().isOk()).andExpect(view().name("readingList"))
+				.andExpect(model().attribute("reader", samePropertyValuesAs(expectedReader)))
+				.andExpect(model().attribute("books", hasSize(0)));
 	}
 }
