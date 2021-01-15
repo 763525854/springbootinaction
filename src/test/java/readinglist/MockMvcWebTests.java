@@ -14,7 +14,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -36,8 +40,9 @@ public class MockMvcWebTests {
 
 	@Before
 	public void setupMockMvc() {
-		//这里配置Security认证授权
-		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(SecurityMockMvcConfigurers.springSecurity()).build();
+		// 这里配置Security认证授权
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+				.apply(SecurityMockMvcConfigurers.springSecurity()).build();
 	}
 
 	/**
@@ -50,5 +55,34 @@ public class MockMvcWebTests {
 	public void homePage() throws Exception {
 		mockMvc.perform(get("/readingList")).andExpect(status().isOk()).andExpect(view().name("readingList"))
 				.andExpect(model().attributeExists("books")).andExpect(model().attribute("books", is(empty())));
+	}
+
+	@Test
+	public void homePage_unauthenticatedUser() throws Exception {
+		mockMvc.perform(get("/")).andExpect(status().is3xxRedirection())
+				.andExpect(header().string("Location", "http://localhost/login"));
+	}
+
+	@Test
+	public void postBook() throws Exception {
+		String reader = "ok";
+		String TOKEN_ATTR_NAME = "org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository.CSRF_TOKEN";
+		HttpSessionCsrfTokenRepository httpSessionCsrfTokenRepository = new HttpSessionCsrfTokenRepository();
+		CsrfToken csrfToken = httpSessionCsrfTokenRepository.generateToken(new MockHttpServletRequest());
+		mockMvc.perform(post("/" + reader).contentType(MediaType.APPLICATION_FORM_URLENCODED)
+				.sessionAttr(TOKEN_ATTR_NAME, csrfToken).param(csrfToken.getParameterName(), csrfToken.getToken())
+				.param("title", "BOOK TITLE").param("author", "BOOK AUTHOR").param("isbn", "1234567890")
+				.param("description", "DESCRIPTION").param("_csrf", "asdfas")).andExpect(status().is3xxRedirection())
+				.andExpect(header().string("Location", "/" + reader));
+		Book expectedBook = new Book();
+		expectedBook.setId(1L);
+		expectedBook.setReader(reader);
+		expectedBook.setTitle("BOOK TITLE");
+		expectedBook.setAuthor("BOOK AUTHOR");
+		expectedBook.setIsbn("1234567890");
+		expectedBook.setDescription("DESCRIPTION");
+		mockMvc.perform(get("/" + reader)).andExpect(status().isOk()).andExpect(view().name("readingList"))
+				.andExpect(model().attributeExists("books")).andExpect(model().attribute("books", hasSize(1)))
+				.andExpect(model().attribute("books", contains(samePropertyValuesAs(expectedBook))));
 	}
 }
