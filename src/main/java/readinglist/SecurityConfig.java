@@ -27,8 +27,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(HttpSecurity httpSecurity) throws Exception {
-		httpSecurity.authorizeRequests().antMatchers("/").access("hasRole('READER')").antMatchers("/**").permitAll()
-				.and().formLogin().loginPage("/login").failureUrl("/login?error=true");
+		httpSecurity.authorizeRequests().antMatchers("/").access("hasRole('READER')").antMatchers("/shutdown")
+				.access("hasRole('ADMIN')").antMatchers("/health").access("hasRole('ADMIN')").antMatchers("/**")
+				.permitAll().and().formLogin().loginPage("/login").failureUrl("/login?error=true");
 	}
 
 	@Override
@@ -39,7 +40,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 				return readerRepository.findOne(username);
 			}
-		});
+		}).and().inMemoryAuthentication().withUser("admin").password("rhyme").roles("ADMIN", "READER");
 	}
 
 }
